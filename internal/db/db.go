@@ -1,11 +1,14 @@
 package db
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
+	"os"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
@@ -158,6 +161,28 @@ order by table_schema, table_name;`, excludedSchemas)
 	}
 	log.Printf("		  vacuum stoped")
 	log.Printf("=====================================")
+
+	return nil
+}
+
+func ExecFromFile(file string) error {
+	fo, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer fo.Close()
+	scanner := bufio.NewScanner(fo)
+	for scanner.Scan() {
+		sqlQuery := scanner.Text()
+		log.Printf("=====================================")
+		log.Printf("running file started: %s", file)
+		_, err = db.Exec(sqlQuery)
+		if err != nil {
+			return err
+		}
+		log.Printf("running file stoped: %s", file)
+		log.Printf("=====================================")
+	}
 
 	return nil
 }

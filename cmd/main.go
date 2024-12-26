@@ -4,6 +4,8 @@ import (
 	"github.com/a-korkin/db_maintenancer/configs"
 	"github.com/a-korkin/db_maintenancer/internal/db"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -56,6 +58,30 @@ func startVacuum(excluded string) {
 	}
 }
 
+func startScripts() {
+	scrp, err := configs.GetEnv("SCRIPTS_RUN")
+	if err != nil {
+		log.Fatalf("failed to get SCRIPTS_RUN: %s", err)
+	}
+	needScripts, err := strconv.ParseBool(scrp)
+	if err != nil {
+		log.Fatalf("failed to parse: %s", err)
+	}
+	scriptsDir, err := configs.GetEnv("SCRIPTS_PATH")
+	if err != nil {
+		log.Fatalf("failed to get SCRIPTS_PATH: %s", err)
+	}
+	if needScripts {
+		entries, err := os.ReadDir(scriptsDir)
+		for _, f := range entries {
+			filePath := filepath.Join(scriptsDir, f.Name())
+			if err = db.ExecFromFile(filePath); err != nil {
+				log.Fatalf("failed to exec scripts from files: %s", err)
+			}
+		}
+	}
+}
+
 func main() {
 	conn, err := configs.GetEnv("DB_CONNECTION")
 	if err != nil {
@@ -75,6 +101,7 @@ func main() {
 	startRefresh()
 	startVacuum(excluded)
 	startReindex(excluded)
+	startScripts()
 
 	defer func() {
 		if err = db.Stop(); err != nil {
