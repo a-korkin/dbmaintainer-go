@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/a-korkin/db_maintenancer/configs"
-	"github.com/a-korkin/db_maintenancer/internal/db"
+	"bufio"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/a-korkin/db_maintenancer/configs"
+	"github.com/a-korkin/db_maintenancer/internal/db"
 )
 
 func startRefresh() {
@@ -103,6 +105,10 @@ func main() {
 	startVacuum(excluded)
 	startReindex(excluded)
 	startScripts()
+
+	log.Printf("Done. Press Enter.")
+	input := bufio.NewScanner(os.Stdin)
+	input.Scan()
 
 	defer func() {
 		if err = db.Stop(); err != nil {
