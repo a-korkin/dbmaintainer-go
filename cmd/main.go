@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -94,17 +95,18 @@ func main() {
 	if err != nil {
 		log.Printf("failed to get EXCLUDED_SCHEMAS: %s", err)
 	}
-	excluded := strings.Replace(excludedSchemas, ",", "','", -1)
+	excluded := fmt.Sprintf("'%s'", strings.Replace(excludedSchemas, ",", "','", -1))
 
 	err = db.Start(conn)
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}
+	log.Printf("excluded: %s", excluded)
 
-	startRefresh()
-	startVacuum(excluded)
-	startReindex(excluded)
-	startScripts()
+	// startRefresh()
+	// startVacuum(excluded)
+	// startReindex(excluded)
+	// startScripts()
 
 	log.Printf("Done. Press Enter.")
 	input := bufio.NewScanner(os.Stdin)
