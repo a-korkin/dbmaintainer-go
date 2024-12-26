@@ -24,8 +24,12 @@ func main() {
 	if err != nil {
 		log.Printf("failed to get EXCLUDED_SCHEMAS: %s", err)
 	}
-	if err = db.Reindex(strings.Replace(excludedSchemas, ",", "','", -1)); err != nil {
-		log.Fatalf("failed to reindex: %s", err)
+	excludedSchemas = strings.Replace(excludedSchemas, ",", "','", -1)
+	// if err = db.Reindex(excludedSchemas); err != nil {
+	// 	log.Fatalf("failed to reindex: %s", err)
+	// }
+	if err = db.Vacuum(excludedSchemas); err != nil {
+		log.Fatalf("failed to vacuum: %s", err)
 	}
 	defer func() {
 		if err = db.Stop(); err != nil {

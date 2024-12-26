@@ -113,3 +113,51 @@ order by schemaname, indexname;`, excludedSchemas)
 
 	return nil
 }
+
+func Vacuum(excludedSchemas string) error {
+	countRows, err := db.Query(`
+select count(*)
+from information_schema.tables
+where table_schema not in ($1)        
+	and table_type = 'BASE TABLE';`, excludedSchemas)
+	if err != nil {
+		return err
+	}
+	count := 0
+	if countRows.Next() {
+		if err = countRows.Scan(&count); err != nil {
+			return err
+		}
+	}
+	rows, err := db.Query(`
+select ('"' || table_schema || '"."' || table_name || '"')
+from information_schema.tables
+where table_schema not in ($1)        
+	and table_type = 'BASE TABLE'
+order by table_schema, table_name;`, excludedSchemas)
+	if err != nil {
+		return err
+	}
+
+	var table string
+	var start, stop time.Time
+
+	log.Printf("=====================================")
+	log.Printf("		  vacuum started")
+	for i := 1; rows.Next(); i++ {
+		if err = rows.Scan(&table); err != nil {
+			return err
+		}
+		start = time.Now()
+		_, err = db.Exec(fmt.Sprintf("vacuum analyze %s", table))
+		if err != nil {
+			log.Printf("failed to vacuum table: %s", table)
+		}
+		stop = time.Now()
+		log.Printf("%04d of %04d => %s: %s", i, count, table, stop.Sub(start))
+	}
+	log.Printf("		  vacuum stoped")
+	log.Printf("=====================================")
+
+	return nil
+}
