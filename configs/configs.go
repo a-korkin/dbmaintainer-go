@@ -12,7 +12,7 @@ func init() {
 }
 
 func GetEnv(key string) (string, error) {
-	value := os.Getenv("DB_CONNECTION")
+	value := os.Getenv(key)
 	var err error
 	if value == "" {
 		err = fmt.Errorf("failed to find env variable: %s", key)

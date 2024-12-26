@@ -4,6 +4,7 @@ import (
 	"github.com/a-korkin/db_maintenancer/configs"
 	"github.com/a-korkin/db_maintenancer/internal/db"
 	"log"
+	"strings"
 )
 
 func main() {
@@ -16,8 +17,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}
-	if err = db.RefreshMatViews(); err != nil {
-		log.Fatalf("failed to refresh matviews: %s", err)
+	// if err = db.RefreshMatViews(); err != nil {
+	// 	log.Fatalf("failed to refresh matviews: %s", err)
+	// }
+	excludedSchemas, err := configs.GetEnv("EXCLUDED_SCHEMAS")
+	if err != nil {
+		log.Printf("failed to get EXCLUDED_SCHEMAS: %s", err)
+	}
+	if err = db.Reindex(strings.Replace(excludedSchemas, ",", "','", -1)); err != nil {
+		log.Fatalf("failed to reindex: %s", err)
 	}
 	defer func() {
 		if err = db.Stop(); err != nil {
