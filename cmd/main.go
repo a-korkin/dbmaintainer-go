@@ -103,10 +103,10 @@ func main() {
 	}
 	log.Printf("excluded: %s", excluded)
 
-	// startRefresh()
-	// startVacuum(excluded)
-	// startReindex(excluded)
-	// startScripts()
+	startRefresh()
+	startVacuum(excluded)
+	startReindex(excluded)
+	startScripts()
 
 	log.Printf("Done. Press Enter.")
 	input := bufio.NewScanner(os.Stdin)
