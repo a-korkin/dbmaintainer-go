@@ -4,7 +4,6 @@ import (
 	"github.com/a-korkin/db_maintenancer/configs"
 	"github.com/a-korkin/db_maintenancer/internal/db"
 	"log"
-	"time"
 )
 
 func main() {
@@ -17,10 +16,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}
-	log.Printf("everything is ok")
-	time.Sleep(2 * time.Second)
+	if err = db.RefreshMatViews(); err != nil {
+		log.Fatalf("failed to refresh matviews: %s", err)
+	}
 	defer func() {
-		log.Printf("closing connection")
 		if err = db.Stop(); err != nil {
 			log.Fatalf("failed to close connection to db: %s", err)
 		}
