@@ -71,13 +71,14 @@ func startScripts() {
 	if err != nil {
 		log.Fatalf("failed to get SCRIPTS_PATH: %s", err)
 	}
-	if needScripts {
-		entries, err := os.ReadDir(scriptsDir)
-		for _, f := range entries {
-			filePath := filepath.Join(scriptsDir, f.Name())
-			if err = db.ExecFromFile(filePath); err != nil {
-				log.Fatalf("failed to exec scripts from files: %s", err)
-			}
+	if !needScripts {
+		return
+	}
+	entries, err := os.ReadDir(scriptsDir)
+	for _, f := range entries {
+		filePath := filepath.Join(scriptsDir, f.Name())
+		if err = db.ExecFromFile(filePath); err != nil {
+			log.Fatalf("failed to exec scripts from files: %s", err)
 		}
 	}
 }
