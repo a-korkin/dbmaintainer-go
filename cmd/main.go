@@ -87,7 +87,7 @@ func startScripts() {
 	}
 }
 
-func setLogs() {
+func setLogs() *os.File {
 	logsPath, err := configs.GetEnv("LOGS_PATH")
 	if err != nil {
 		log.Fatalf("failed to get LOGS_PATH: %s", err)
@@ -109,10 +109,11 @@ func setLogs() {
 	} else {
 		log.Printf("failed to open log file: %s", err)
 	}
+	return file
 }
 
 func main() {
-	setLogs()
+	logFile := setLogs()
 	conn, err := configs.GetEnv("DB_CONNECTION")
 	if err != nil {
 		log.Fatalf("failed to get DB_CONNECTION: %s", err)
@@ -132,6 +133,12 @@ func main() {
 	startVacuum(excluded)
 	startReindex(excluded)
 	startScripts()
+
+	defer func() {
+		if err = logFile.Close(); err != nil {
+			log.Fatalf("failed to close log file: %s", err)
+		}
+	}()
 
 	defer func() {
 		if err = db.Stop(); err != nil {
