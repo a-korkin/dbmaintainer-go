@@ -87,6 +87,17 @@ func startScripts() {
 }
 
 func setLogs() {
+	logsPath, err := configs.GetEnv("LOGS_PATH")
+	if err != nil {
+		log.Fatalf("failed to get LOGS_PATH: %s", err)
+	}
+	_, err = os.Stat(logsPath)
+	if err != nil {
+		if err = os.Mkdir(logsPath, os.ModePerm); err != nil {
+			log.Fatalf("failed to create logging directory: %s", err)
+		}
+	}
+
 	file, err := os.OpenFile("log_file.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	multi := io.MultiWriter(file, os.Stdout)
 	if err == nil {
