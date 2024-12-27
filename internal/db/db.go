@@ -171,6 +171,7 @@ func ExecFromFile(file string) error {
 		return err
 	}
 	defer fo.Close()
+
 	scanner := bufio.NewScanner(fo)
 	for scanner.Scan() {
 		sqlQuery := scanner.Text()

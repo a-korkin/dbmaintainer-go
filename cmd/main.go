@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -86,7 +86,18 @@ func startScripts() {
 	}
 }
 
+func setLogs() {
+	file, err := os.OpenFile("log_file.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	multi := io.MultiWriter(file, os.Stdout)
+	if err == nil {
+		log.SetOutput(multi)
+	} else {
+		log.Printf("failed to open log file: %s", err)
+	}
+}
+
 func main() {
+	setLogs()
 	conn, err := configs.GetEnv("DB_CONNECTION")
 	if err != nil {
 		log.Fatalf("failed to get DB_CONNECTION: %s", err)
@@ -101,16 +112,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
 	}
-	log.Printf("excluded: %s", excluded)
 
 	startRefresh()
 	startVacuum(excluded)
 	startReindex(excluded)
 	startScripts()
-
-	log.Printf("Done. Press Enter.")
-	input := bufio.NewScanner(os.Stdin)
-	input.Scan()
 
 	defer func() {
 		if err = db.Stop(); err != nil {
