@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/a-korkin/db_maintenancer/configs"
 	"github.com/a-korkin/db_maintenancer/internal/db"
@@ -91,14 +92,17 @@ func setLogs() {
 	if err != nil {
 		log.Fatalf("failed to get LOGS_PATH: %s", err)
 	}
+	today := time.Now()
+	logFile := fmt.Sprintf("%d_%02d_%02d.txt", today.Year(), today.Month(), today.Day())
 	_, err = os.Stat(logsPath)
 	if err != nil {
 		if err = os.Mkdir(logsPath, os.ModePerm); err != nil {
 			log.Fatalf("failed to create logging directory: %s", err)
 		}
 	}
-
-	file, err := os.OpenFile("log_file.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(
+		filepath.Join(logsPath, logFile),
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	multi := io.MultiWriter(file, os.Stdout)
 	if err == nil {
 		log.SetOutput(multi)
